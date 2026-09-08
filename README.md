@@ -7,10 +7,11 @@ and a professional Git workflow.
 
 ## Current status
 
-The bootstrap and property content model milestones are complete. The repository currently provides:
+The bootstrap, property content model, and admin settings milestones are complete. The repository currently provides:
 
 - an activatable WordPress plugin with PSR-4 autoloading;
 - a public property post type with REST-enabled taxonomies and typed metadata;
+- an administrator-only settings dashboard for the API URL, masked token, and sync interval;
 - a Docker-based WordPress development environment;
 - a deterministic mock property API;
 - WP-CLI and Composer containers for host-independent tooling.
@@ -75,10 +76,11 @@ Run the content model check against the local WordPress installation:
 
 ```bash
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/content-model.php
+docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/admin-settings.php
 ```
 
-The check covers CPT visibility, taxonomy registration, metadata registration,
-and sanitization of decimal and hash values.
+The checks cover the content model plus settings validation, token preservation,
+and the deployment-level token override.
 
 ## Development workflow
 
