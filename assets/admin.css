@@ -35,6 +35,58 @@
 	width: 145px;
 }
 
+.property-sync-admin__summary {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.property-sync-admin__summary div {
+	padding: 8px;
+	border-radius: 3px;
+	background: #f6f7f7;
+}
+
+.property-sync-admin__summary dt {
+	font-size: 12px;
+	color: #50575e;
+}
+
+.property-sync-admin__summary dd {
+	margin: 4px 0 0;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.property-sync-admin__table-wrap {
+	overflow-x: auto;
+}
+
+.property-sync-admin__level {
+	display: inline-block;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.property-sync-admin__level--error {
+	color: #8a2424;
+	background: #fbeaea;
+}
+
+.property-sync-admin__level--created,
+.property-sync-admin__level--updated {
+	color: #135e32;
+	background: #edfaef;
+}
+
+.property-sync-admin__level--skipped,
+.property-sync-admin__level--info {
+	color: #3858e9;
+	background: #f0f3ff;
+}
+
 @media screen and (max-width: 782px) {
 	.property-sync-admin__grid {
 		grid-template-columns: 1fr;
@@ -42,5 +94,9 @@
 
 	.property-sync-admin__panel--wide {
 		grid-column: auto;
+	}
+
+	.property-sync-admin__summary {
+		grid-template-columns: 1fr;
 	}
 }

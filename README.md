@@ -82,6 +82,7 @@ docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/test
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/property-normalization.php
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/property-sync.php
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/sync-logging.php
+docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/manual-sync-dashboard.php
 ```
 
 The checks cover the content model plus settings validation, token preservation,
