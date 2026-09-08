@@ -1,27 +1,36 @@
 # Property Sync API
 
-WordPress plugin that imports and synchronizes real-estate listings from an
-external REST API. The project demonstrates a production-oriented WordPress
-integration with idempotent synchronization, WP-Cron, structured logs, tests,
-and a professional Git workflow.
+A WordPress plugin that imports and synchronizes real-estate listings from an
+external REST API into a public `property` custom post type. It is a portfolio
+project focused on a small, production-minded integration: authenticated HTTP,
+normalization, idempotent persistence, manual and scheduled runs, locking,
+structured logs, Docker, tests, and CI.
 
-## Current status
+## Features
 
-The bootstrap, property content model, and admin settings milestones are complete. The repository currently provides:
-
-- an activatable WordPress plugin with PSR-4 autoloading;
-- a public property post type with REST-enabled taxonomies and typed metadata;
-- an administrator-only settings dashboard for the API URL, masked token, and sync interval;
-- a Docker-based WordPress development environment;
-- a deterministic mock property API;
-- WP-CLI and Composer containers for host-independent tooling.
+- Public `property` CPT, REST support, archive at `/properties/`, and property
+  type, city, and status taxonomies.
+- Authenticated, paginated REST client with validation, a 15-second timeout,
+  redirect limit, and page limit.
+- Canonical normalization and SHA-256 change detection: unchanged listings are
+  skipped instead of updated.
+- Safe create/update persistence by external ID; duplicate external IDs are
+  treated as integrity errors.
+- Administrator dashboard for API settings, a masked token, last-run summary,
+  recent activity, and an explicit **Sync now** action.
+- WP-Cron schedules (`hourly`, `twicedaily`, and `daily`) plus a 15-minute,
+  option-backed concurrency lock.
+- Structured log table with a 30-day / 5,000-row retention policy.
+- Docker Compose environment with WordPress, MariaDB, WP-CLI, Composer, and a
+  deterministic mock API.
 
 ## Requirements
 
+- Docker and Docker Compose
 - Git
-- Docker with Docker Compose
 
-PHP and Composer do not need to be installed on the host.
+PHP and Composer are provided through Docker, so neither is required on the
+host machine.
 
 ## Quick start
 
@@ -31,13 +40,13 @@ PHP and Composer do not need to be installed on the host.
    cp .env.example .env
    ```
 
-2. Start the environment:
+2. Start the services:
 
    ```bash
    docker compose up -d
    ```
 
-3. Install WordPress and activate the plugin:
+3. Install WordPress, configure rewrites, and activate the plugin:
 
    ```bash
    docker compose run --rm wpcli wp core install --url=http://localhost:8080 --title="Property Sync" --admin_user=admin --admin_password=admin --admin_email=admin@example.com --skip-email
@@ -45,36 +54,116 @@ PHP and Composer do not need to be installed on the host.
    docker compose run --rm wpcli wp plugin activate property-sync
    ```
 
-WordPress will be available at <http://localhost:8080> and the mock API at
-<http://localhost:3001/properties>. The local WordPress credentials are
-`admin` / `admin` and must never be reused outside development.
+Open WordPress at <http://localhost:8080>, sign in with `admin` / `admin`, and
+open **Property Sync** in the admin menu. These credentials are for local
+development only.
 
-The API is also reachable from WordPress containers at:
+For the bundled API, configure:
 
 ```text
-http://mock-api:3000/properties
+API URL: http://mock-api:3000/properties
+API token: demo-token
+Sync interval: Disabled (or a desired native WP-Cron interval)
 ```
 
-Use the demo bearer token `demo-token` when testing the endpoint.
+The mock API is also exposed to the host at
+<http://localhost:3001/properties>. Its full payload contract and failure
+scenarios are in [docs/api-contract.md](docs/api-contract.md).
 
-## Useful commands
+## Synchronization flow
+
+```text
+Manual action / WP-Cron
+          |
+          v
+      SyncRunner
+       |       |
+       |       +-- acquire 15-minute lock
+       v
+PropertyApiClient -> PropertyNormalizer -> PropertyHasher
+                                            |
+                                            v
+                                     PropertyRepository
+                                      create / update / skip
+                                            |
+                                            v
+                                       SyncLogger
+```
+
+The external ID is required and is stored as `_property_external_id`. For each
+valid listing, relevant canonical fields are recursively key-sorted and hashed
+with SHA-256. A matching `_property_sync_hash` skips the post; a changed hash
+updates it. The API's `updated_at` remains audit information rather than the
+only change signal.
+
+An invalid individual item is logged and does not stop its run. A transport,
+HTTP, JSON, or response-envelope error stops the run safely. Items missing from
+the source are deliberately not removed in this MVP.
+
+See [docs/architecture.md](docs/architecture.md) for component boundaries,
+data storage, and security decisions.
+
+## Configuration and security
+
+Only users with `manage_options` can configure or run a synchronization.
+Settings use one structured option, `property_sync_settings`; the token option
+is not autoloaded and the UI never renders its saved value. Submitting an empty
+token keeps the previous token.
+
+For deployments, define the token outside the database:
+
+```php
+define( 'PROPERTY_SYNC_API_TOKEN', 'replace-with-a-secret' );
+```
+
+The constant takes precedence and makes the admin field read-only. Production
+endpoints must use HTTPS; HTTP is accepted only for `localhost`, `127.0.0.1`,
+`::1`, and Docker's local `mock-api` host. Tokens, authorization headers, and
+credential-shaped log context are never persisted to activity logs.
+
+## Scheduling and logs
+
+The `property_sync_run_scheduled` event uses WordPress's native `hourly`,
+`twicedaily`, or `daily` schedules. Saving a different interval rebuilds the
+single scheduled event; choosing **Disabled** removes it. WP-Cron runs when
+WordPress receives traffic, so production sites with time-sensitive feeds
+should trigger `wp-cron.php` from the system scheduler.
+
+Each run uses `property_sync_lock`, an atomic non-autoloaded option with a
+15-minute TTL. Expired locks can be recovered and only their owner token can
+release them. The lock is released in `finally`, including API failures.
+
+Events live in the `{$wpdb->prefix}property_sync_logs` table. The dashboard
+shows the latest 50, and cleanup retains at most 30 days or 5,000 rows.
+
+## Development commands
 
 ```bash
+# Environment status and logs
 docker compose ps
 docker compose logs -f wordpress
+
+# Composer validation, coding standards, and unit tests
 docker compose run --rm composer-install validate --strict
+docker compose run --rm composer-install check
+docker compose run --rm composer-install lint:fix
+
+# Plugin status
 docker compose run --rm wpcli wp plugin status property-sync
-docker compose down
 ```
 
-Use `docker compose down -v` only when you intentionally want to delete the
-local WordPress database and uploaded files.
+Do not run `docker compose down -v` unless you intentionally want to remove the
+local database and uploads. Plain `docker compose down` keeps them.
 
-## Smoke tests
+## Tests
 
-Run the content model check against the local WordPress installation:
+The project uses PHPUnit for pure normalization/hash behavior, PHPCS with
+WordPress Coding Standards and PHPCompatibility for static checks, and
+WordPress smoke scripts for integration behavior.
 
 ```bash
+docker compose run --rm composer-install check
+
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/content-model.php
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/admin-settings.php
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/api-client.php
@@ -86,32 +175,23 @@ docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/test
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/cron-and-lock.php
 ```
 
-The checks cover the content model plus settings validation, token preservation,
-the deployment-level token override, the paginated API client, persistence, and
-structured logging.
-
-## Quality checks
-
-Run the static checks and pure unit tests through the Composer container:
-
-```bash
-docker compose run --rm composer-install check
-docker compose run --rm composer-install lint:fix
-```
-
-GitHub Actions runs the same PHPCS and PHPUnit checks for pull requests and
+GitHub Actions runs the static checks and unit tests for pull requests and for
 pushes to `develop` and `main`.
 
-## Development workflow
+## Scope and roadmap
 
-Feature and chore branches are created from `develop` and merged back through
-pull requests. Stable releases are promoted from `develop` to `main`.
+This MVP intentionally excludes automatic deletion of missing listings,
+image sideloading, CSV export, custom cron intervals, WP-CLI commands,
+incremental cursors, queues, Redis, multisite, GraphQL, webhooks, and
+bidirectional synchronization. Those are possible next steps once a concrete
+production requirement justifies their complexity.
 
-## Planned capabilities
+## Project workflow
 
-- Property custom post type and taxonomies
-- Authenticated REST API client
-- Idempotent create, update, and skip synchronization
-- Manual and WP-Cron execution
-- Concurrency protection and structured logs
-- Automated tests, WordPress Coding Standards, and CI
+Work branches from `develop`, uses Conventional Commits, and is merged back
+with review. Releases are promoted from `develop` to `main`. The CI workflow,
+issue forms, and pull request template are included in `.github/`.
+
+## License
+
+GPL-2.0-or-later. See the plugin header for the license declaration.
