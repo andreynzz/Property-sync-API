@@ -9,18 +9,30 @@ declare(strict_types=1);
 
 namespace PropertySync;
 
+use PropertySync\Admin\AdminPage;
+use PropertySync\Admin\Settings;
 use PropertySync\PostType\PropertyPostType;
 
 final class Plugin
 {
 	private PropertyPostType $propertyPostType;
 
+	private Settings $settings;
+
+	private AdminPage $adminPage;
+
 	/**
 	 * Build the plugin with explicit dependencies.
 	 */
-	public function __construct( ?PropertyPostType $propertyPostType = null )
+	public function __construct(
+		?PropertyPostType $propertyPostType = null,
+		?Settings $settings = null,
+		?AdminPage $adminPage = null
+	)
 	{
 		$this->propertyPostType = $propertyPostType ?? new PropertyPostType();
+		$this->settings         = $settings ?? new Settings();
+		$this->adminPage        = $adminPage ?? new AdminPage();
 	}
 
 	/**
@@ -29,6 +41,8 @@ final class Plugin
 	public function register(): void
 	{
 		$this->propertyPostType->registerHooks();
+		$this->settings->registerHooks();
+		$this->adminPage->registerHooks();
 		add_action( 'plugins_loaded', array( $this, 'boot' ) );
 	}
 
