@@ -9,8 +9,10 @@ declare(strict_types=1);
 
 namespace PropertySync\Sync;
 
-use PropertySync\Logging\SyncLogger;
+use InvalidArgumentException;
+use PropertySync\Api\ApiException;
 use PropertySync\Api\PropertyApiClient;
+use PropertySync\Logging\SyncLogger;
 use Throwable;
 
 final class SyncRunner {
@@ -68,7 +70,21 @@ final class SyncRunner {
 				$this->syncProperty( $property, $result );
 			}
 		} catch ( Throwable $exception ) {
-			$this->logger->log( $runId, 'ERROR', 'sync_failed', 'Property synchronization stopped because the API could not be read.' );
+			$result->markFailed();
+
+			if ( $exception instanceof ApiException ) {
+				$this->logger->log( $runId, 'ERROR', 'sync_api_failed', 'Property synchronization stopped because the API could not be read.' );
+			} else {
+				$this->logger->log(
+					$runId,
+					'ERROR',
+					'sync_unexpected_failure',
+					'Property synchronization stopped because of an unexpected error.',
+					null,
+					array( 'failure_type' => get_debug_type( $exception ) )
+				);
+			}
+
 			throw $exception;
 		} finally {
 			$result->finish( gmdate( 'Y-m-d\TH:i:s\Z' ) );
@@ -110,10 +126,21 @@ final class SyncRunner {
 			$this->repository->update( $postId, $normalized, $hash );
 			$result->incrementUpdated();
 			$this->logger->log( $result->getRunId(), 'UPDATED', 'property_updated', 'Property updated.', $normalized['external_id'] );
-		} catch ( Throwable $exception ) {
-			$result->incrementErrors();
-			$externalId = isset( $property['external_id'] ) && is_string( $property['external_id'] ) ? $property['external_id'] : null;
-			$this->logger->log( $result->getRunId(), 'ERROR', 'property_failed', 'Property could not be synchronized.', $externalId );
+		} catch ( InvalidArgumentException $exception ) {
+			$this->recordPropertyFailure( $property, $result, 'property_invalid', 'Invalid property payload: ' . $exception->getMessage(), 'invalid_payload' );
+		} catch ( PropertyPersistenceException $exception ) {
+			$this->recordPropertyFailure( $property, $result, 'property_persistence_failed', 'Property persistence failed: ' . $exception->getMessage(), 'persistence' );
 		}
+	}
+
+	/**
+	 * Record an expected item-level failure without exposing its raw payload.
+	 *
+	 * @param array<string, mixed> $property External property payload.
+	 */
+	private function recordPropertyFailure( array $property, SyncResult $result, string $event, string $message, string $failureType ): void {
+		$result->incrementErrors();
+		$externalId = isset( $property['external_id'] ) && is_string( $property['external_id'] ) ? $property['external_id'] : null;
+		$this->logger->log( $result->getRunId(), 'ERROR', $event, $message, $externalId, array( 'failure_type' => $failureType ) );
 	}
 }

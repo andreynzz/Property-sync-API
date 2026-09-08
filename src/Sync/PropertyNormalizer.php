@@ -11,8 +11,8 @@ namespace PropertySync\Sync;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Exception;
 use InvalidArgumentException;
-use Throwable;
 
 final class PropertyNormalizer {
 
@@ -116,7 +116,7 @@ final class PropertyNormalizer {
 
 		try {
 			$dateTime = new DateTimeImmutable( $value );
-		} catch ( Throwable $exception ) {
+		} catch ( Exception $exception ) {
 			throw new InvalidArgumentException( sprintf( 'Property field "%s" must be a valid timestamp.', $field ), 0, $exception );
 		}
 
