@@ -60,6 +60,11 @@ final class SyncResult
 		++$this->errors;
 	}
 
+	public function getRunId(): string
+	{
+		return $this->runId;
+	}
+
 	public function finish( string $finishedAt ): void
 	{
 		$this->finishedAt = $finishedAt;
