@@ -7,6 +7,7 @@
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Andrey
+ * Copyright:         (c) 2026 Andrey da Hora Pirola
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       property-sync
