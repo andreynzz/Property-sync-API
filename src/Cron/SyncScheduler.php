@@ -13,16 +13,15 @@ use PropertySync\Admin\Settings;
 use PropertySync\Sync\SyncRunner;
 use Throwable;
 
-final class SyncScheduler
-{
+final class SyncScheduler {
+
 	public const HOOK = 'property_sync_run_scheduled';
 
 	private Settings $settings;
 
 	private SyncRunner $runner;
 
-	public function __construct( ?Settings $settings = null, ?SyncRunner $runner = null )
-	{
+	public function __construct( ?Settings $settings = null, ?SyncRunner $runner = null ) {
 		$this->settings = $settings ?? new Settings();
 		$this->runner   = $runner ?? new SyncRunner();
 	}
@@ -30,8 +29,7 @@ final class SyncScheduler
 	/**
 	 * Register scheduling and execution hooks.
 	 */
-	public function registerHooks(): void
-	{
+	public function registerHooks(): void {
 		add_action( 'init', array( $this, 'ensureScheduled' ) );
 		add_action( self::HOOK, array( $this, 'runScheduled' ) );
 		add_action( 'update_option_' . Settings::OPTION_NAME, array( $this, 'rescheduleOnSettingsChange' ), 10, 2 );
@@ -40,8 +38,7 @@ final class SyncScheduler
 	/**
 	 * Schedule one recurring event for the configured interval.
 	 */
-	public function ensureScheduled(): void
-	{
+	public function ensureScheduled(): void {
 		$interval = $this->settings->get()['interval'];
 		if ( 'disabled' === $interval ) {
 			wp_clear_scheduled_hook( self::HOOK );
@@ -61,8 +58,7 @@ final class SyncScheduler
 	 * @param mixed $oldValue Previous settings option.
 	 * @param mixed $value New settings option.
 	 */
-	public function rescheduleOnSettingsChange( mixed $oldValue, mixed $value ): void
-	{
+	public function rescheduleOnSettingsChange( mixed $oldValue, mixed $value ): void {
 		$oldInterval = is_array( $oldValue ) ? (string) ( $oldValue['interval'] ?? 'disabled' ) : 'disabled';
 		$newInterval = is_array( $value ) ? (string) ( $value['interval'] ?? 'disabled' ) : 'disabled';
 
@@ -79,12 +75,12 @@ final class SyncScheduler
 	/**
 	 * Run cron through the same use case as manual synchronization.
 	 */
-	public function runScheduled(): void
-	{
+	public function runScheduled(): void {
 		try {
 			$this->runner->run( 'cron' );
 		} catch ( Throwable $exception ) {
 			// SyncRunner records a safe failure event; cron should not emit a fatal error.
+			return;
 		}
 	}
 }

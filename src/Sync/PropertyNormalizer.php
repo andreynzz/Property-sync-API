@@ -14,8 +14,8 @@ use DateTimeZone;
 use InvalidArgumentException;
 use Throwable;
 
-final class PropertyNormalizer
-{
+final class PropertyNormalizer {
+
 	/**
 	 * Validate and normalize one external property.
 	 *
@@ -23,22 +23,21 @@ final class PropertyNormalizer
 	 * @return array{external_id: string, title: string, description: string, price: string, property_type: string, city: string, neighborhood: string, bedrooms: int, bathrooms: int, area: string, status: string, image_url: string, updated_at: string}
 	 * @throws InvalidArgumentException When a required field is missing or invalid.
 	 */
-	public function normalize( array $property ): array
-	{
+	public function normalize( array $property ): array {
 		return array(
-			'external_id'  => $this->requiredText( $property, 'external_id' ),
-			'title'        => $this->requiredText( $property, 'title' ),
-			'description'  => $this->requiredText( $property, 'description' ),
-			'price'        => $this->decimal( $property, 'price' ),
+			'external_id'   => $this->requiredText( $property, 'external_id' ),
+			'title'         => $this->requiredText( $property, 'title' ),
+			'description'   => $this->requiredText( $property, 'description' ),
+			'price'         => $this->decimal( $property, 'price' ),
 			'property_type' => $this->requiredText( $property, 'property_type' ),
-			'city'         => $this->requiredText( $property, 'city' ),
-			'neighborhood' => $this->requiredText( $property, 'neighborhood' ),
-			'bedrooms'     => $this->nonNegativeInteger( $property, 'bedrooms' ),
-			'bathrooms'    => $this->nonNegativeInteger( $property, 'bathrooms' ),
-			'area'         => $this->decimal( $property, 'area' ),
-			'status'       => $this->requiredText( $property, 'status' ),
-			'image_url'    => $this->url( $property, 'image_url' ),
-			'updated_at'   => $this->dateTime( $property, 'updated_at' ),
+			'city'          => $this->requiredText( $property, 'city' ),
+			'neighborhood'  => $this->requiredText( $property, 'neighborhood' ),
+			'bedrooms'      => $this->nonNegativeInteger( $property, 'bedrooms' ),
+			'bathrooms'     => $this->nonNegativeInteger( $property, 'bathrooms' ),
+			'area'          => $this->decimal( $property, 'area' ),
+			'status'        => $this->requiredText( $property, 'status' ),
+			'image_url'     => $this->url( $property, 'image_url' ),
+			'updated_at'    => $this->dateTime( $property, 'updated_at' ),
 		);
 	}
 
@@ -47,8 +46,7 @@ final class PropertyNormalizer
 	 *
 	 * @param array<string, mixed> $property External API property payload.
 	 */
-	private function requiredText( array $property, string $field ): string
-	{
+	private function requiredText( array $property, string $field ): string {
 		$value = $property[ $field ] ?? null;
 		if ( ! is_string( $value ) || '' === trim( $value ) ) {
 			throw new InvalidArgumentException( sprintf( 'Property field "%s" must be a non-empty string.', $field ) );
@@ -62,8 +60,7 @@ final class PropertyNormalizer
 	 *
 	 * @param array<string, mixed> $property External API property payload.
 	 */
-	private function decimal( array $property, string $field ): string
-	{
+	private function decimal( array $property, string $field ): string {
 		$value = $property[ $field ] ?? null;
 		if ( ! is_string( $value ) || 1 !== preg_match( '/^\d+(?:\.\d{1,2})?$/', $value ) ) {
 			throw new InvalidArgumentException( sprintf( 'Property field "%s" must be a non-negative decimal string.', $field ) );
@@ -81,8 +78,7 @@ final class PropertyNormalizer
 	 *
 	 * @param array<string, mixed> $property External API property payload.
 	 */
-	private function nonNegativeInteger( array $property, string $field ): int
-	{
+	private function nonNegativeInteger( array $property, string $field ): int {
 		$value = $property[ $field ] ?? null;
 		if ( ! is_int( $value ) || $value < 0 ) {
 			throw new InvalidArgumentException( sprintf( 'Property field "%s" must be a non-negative integer.', $field ) );
@@ -96,8 +92,7 @@ final class PropertyNormalizer
 	 *
 	 * @param array<string, mixed> $property External API property payload.
 	 */
-	private function url( array $property, string $field ): string
-	{
+	private function url( array $property, string $field ): string {
 		$value  = $property[ $field ] ?? null;
 		$scheme = is_string( $value ) ? (string) parse_url( $value, PHP_URL_SCHEME ) : '';
 
@@ -113,8 +108,7 @@ final class PropertyNormalizer
 	 *
 	 * @param array<string, mixed> $property External API property payload.
 	 */
-	private function dateTime( array $property, string $field ): string
-	{
+	private function dateTime( array $property, string $field ): string {
 		$value = $property[ $field ] ?? null;
 		if ( ! is_string( $value ) || 1 !== preg_match( '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$/', $value ) ) {
 			throw new InvalidArgumentException( sprintf( 'Property field "%s" must be an ISO 8601 timestamp.', $field ) );

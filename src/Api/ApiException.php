@@ -11,6 +11,6 @@ namespace PropertySync\Api;
 
 use RuntimeException;
 
-final class ApiException extends RuntimeException
-{
+final class ApiException extends RuntimeException {
+
 }

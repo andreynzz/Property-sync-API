@@ -12,8 +12,8 @@ namespace PropertySync\Activation;
 use PropertySync\Cron\SyncScheduler;
 use PropertySync\PostType\PropertyPostType;
 
-final class Activator
-{
+final class Activator {
+
 	private const VERSION_OPTION = 'property_sync_version';
 
 	private const LOG_SCHEMA_OPTION = 'property_sync_log_schema_version';
@@ -23,8 +23,7 @@ final class Activator
 	/**
 	 * Store the version and create rewrite rules for the content model.
 	 */
-	public static function activate(): void
-	{
+	public static function activate(): void {
 		if ( false === get_option( self::VERSION_OPTION, false ) ) {
 			add_option( self::VERSION_OPTION, PROPERTY_SYNC_VERSION, '', false );
 		} else {
@@ -40,8 +39,7 @@ final class Activator
 	/**
 	 * Create or upgrade the logging table when the stored schema is outdated.
 	 */
-	public static function maybeUpgrade(): void
-	{
+	public static function maybeUpgrade(): void {
 		if ( self::LOG_SCHEMA_VERSION === get_option( self::LOG_SCHEMA_OPTION ) ) {
 			return;
 		}

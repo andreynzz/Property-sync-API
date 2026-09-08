@@ -13,8 +13,8 @@ use JsonException;
 use PropertySync\Admin\Settings;
 use WP_Error;
 
-final class PropertyApiClient
-{
+final class PropertyApiClient {
+
 	private const PER_PAGE = 50;
 
 	private const MAX_PAGES = 100;
@@ -24,8 +24,7 @@ final class PropertyApiClient
 	/**
 	 * @param Settings|null $settings Connection settings source.
 	 */
-	public function __construct( ?Settings $settings = null )
-	{
+	public function __construct( ?Settings $settings = null ) {
 		$this->settings = $settings ?? new Settings();
 	}
 
@@ -35,8 +34,7 @@ final class PropertyApiClient
 	 * @return list<array<string, mixed>>
 	 * @throws ApiException When the API cannot be read safely.
 	 */
-	public function fetchProperties(): array
-	{
+	public function fetchProperties(): array {
 		$apiUrl = $this->settings->get()['api_url'];
 		$token  = $this->settings->getApiToken();
 
@@ -76,8 +74,7 @@ final class PropertyApiClient
 	 * @return array{data: list<array<string, mixed>>, meta: array{next_page: int|null}}
 	 * @throws ApiException When the request or contract is invalid.
 	 */
-	private function requestPage( string $apiUrl, string $token, int $page ): array
-	{
+	private function requestPage( string $apiUrl, string $token, int $page ): array {
 		$url      = add_query_arg(
 			array(
 				'page'     => $page,
@@ -116,13 +113,12 @@ final class PropertyApiClient
 	 *
 	 * @return array<string, mixed>|WP_Error
 	 */
-	private function sendRequest( string $url, string $token ): array|WP_Error
-	{
+	private function sendRequest( string $url, string $token ): array|WP_Error {
 		$args = array(
-			'timeout'             => 15,
-			'redirection'         => 3,
-			'reject_unsafe_urls'  => true,
-			'headers'             => array(
+			'timeout'            => 15,
+			'redirection'        => 3,
+			'reject_unsafe_urls' => true,
+			'headers'            => array(
 				'Accept'        => 'application/json',
 				'Authorization' => 'Bearer ' . $token,
 			),
@@ -145,8 +141,7 @@ final class PropertyApiClient
 	 * @return array{data: list<array<string, mixed>>, meta: array{next_page: int|null}}
 	 * @throws ApiException When the API contract is invalid.
 	 */
-	private function validatePagePayload( mixed $payload, int $requestedPage ): array
-	{
+	private function validatePagePayload( mixed $payload, int $requestedPage ): array {
 		if ( ! is_array( $payload ) || ! isset( $payload['data'], $payload['meta'] ) || ! is_array( $payload['data'] ) || ! is_array( $payload['meta'] ) ) {
 			throw new ApiException( __( 'Property API returned an invalid response contract.', 'property-sync' ) );
 		}
@@ -179,8 +174,7 @@ final class PropertyApiClient
 	/**
 	 * Permit the Docker mock hostname only when WordPress explicitly runs locally.
 	 */
-	private function isDockerMockUrl( string $url ): bool
-	{
+	private function isDockerMockUrl( string $url ): bool {
 		$parts = wp_parse_url( $url );
 		$host  = strtolower( (string) ( $parts['host'] ?? '' ) );
 
@@ -190,16 +184,14 @@ final class PropertyApiClient
 	/**
 	 * @param mixed $value Candidate numeric value.
 	 */
-	private function isPositiveInteger( mixed $value ): bool
-	{
+	private function isPositiveInteger( mixed $value ): bool {
 		return is_int( $value ) && $value > 0;
 	}
 
 	/**
 	 * @param mixed $value Candidate numeric value.
 	 */
-	private function isNonNegativeInteger( mixed $value ): bool
-	{
+	private function isNonNegativeInteger( mixed $value ): bool {
 		return is_int( $value ) && $value >= 0;
 	}
 }

@@ -12,30 +12,27 @@ namespace PropertySync\Admin;
 use PropertySync\Sync\SyncRunner;
 use Throwable;
 
-final class ManualSyncAction
-{
+final class ManualSyncAction {
+
 	public const ACTION = 'property_sync_run';
 
 	private SyncRunner $runner;
 
-	public function __construct( SyncRunner $runner )
-	{
+	public function __construct( SyncRunner $runner ) {
 		$this->runner = $runner;
 	}
 
 	/**
 	 * Register the authenticated admin-post action.
 	 */
-	public function registerHooks(): void
-	{
+	public function registerHooks(): void {
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle' ) );
 	}
 
 	/**
 	 * Authorize, execute, and redirect using post/redirect/get.
 	 */
-	public function handle(): void
-	{
+	public function handle(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You are not allowed to run Property Sync.', 'property-sync' ) );
 		}
@@ -47,8 +44,8 @@ final class ManualSyncAction
 			$notice = 'already_running' === $result['status'] ? 'already_running' : 'success';
 			$url    = add_query_arg(
 				array(
-					'page'                 => Settings::PAGE_SLUG,
-					'property_sync_notice' => $notice,
+					'page'                  => Settings::PAGE_SLUG,
+					'property_sync_notice'  => $notice,
 					'property_sync_created' => $result['created'],
 					'property_sync_updated' => $result['updated'],
 					'property_sync_skipped' => $result['skipped'],

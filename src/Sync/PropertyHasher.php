@@ -11,8 +11,8 @@ namespace PropertySync\Sync;
 
 use JsonException;
 
-final class PropertyHasher
-{
+final class PropertyHasher {
+
 	/**
 	 * Hash fields that change published property content.
 	 *
@@ -22,8 +22,7 @@ final class PropertyHasher
 	 * @param array<string, mixed> $property Normalized property payload.
 	 * @throws JsonException When the supplied data cannot be encoded.
 	 */
-	public function hash( array $property ): string
-	{
+	public function hash( array $property ): string {
 		unset( $property['external_id'], $property['updated_at'] );
 
 		$json = json_encode(
@@ -40,8 +39,7 @@ final class PropertyHasher
 	 * @param array<mixed> $value Values to normalize before JSON encoding.
 	 * @return array<mixed>
 	 */
-	private function sortRecursively( array $value ): array
-	{
+	private function sortRecursively( array $value ): array {
 		foreach ( $value as $key => $item ) {
 			if ( is_array( $item ) ) {
 				$value[ $key ] = $this->sortRecursively( $item );
