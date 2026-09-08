@@ -194,4 +194,8 @@ issue forms, and pull request template are included in `.github/`.
 
 ## License
 
-GPL-2.0-or-later. See the plugin header for the license declaration.
+Copyright (c) 2026 Andrey da Hora Pirola.
+
+This project is licensed under [GPL-2.0-or-later](LICENSE). You may use,
+modify, and redistribute it under the GNU General Public License, version 2 or
+any later version published by the Free Software Foundation.
