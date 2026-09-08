@@ -9,8 +9,17 @@ declare(strict_types=1);
 
 namespace PropertySync\Admin;
 
+use PropertySync\Logging\SyncLogger;
+
 final class AdminPage
 {
+	private SyncLogger $logger;
+
+	public function __construct( ?SyncLogger $logger = null )
+	{
+		$this->logger = $logger ?? new SyncLogger();
+	}
+
 	/**
 	 * Register admin hooks.
 	 */
@@ -60,6 +69,9 @@ final class AdminPage
 		}
 
 		$template = PROPERTY_SYNC_PATH . 'templates/admin-page.php';
+		$lastResult = get_option( SyncLogger::LAST_RESULT_OPTION, null );
+		$recentLogs = $this->logger->getRecent();
+		$notice     = sanitize_key( (string) ( $_GET['property_sync_notice'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is a display-only redirect notice.
 
 		if ( is_readable( $template ) ) {
 			require $template;
