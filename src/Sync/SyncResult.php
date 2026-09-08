@@ -11,8 +11,8 @@ namespace PropertySync\Sync;
 
 use DateTimeImmutable;
 
-final class SyncResult
-{
+final class SyncResult {
+
 	private string $runId;
 
 	private string $startedAt;
@@ -31,57 +31,47 @@ final class SyncResult
 
 	private string $status = 'completed';
 
-	public function __construct( string $runId, string $startedAt )
-	{
+	public function __construct( string $runId, string $startedAt ) {
 		$this->runId     = $runId;
 		$this->startedAt = $startedAt;
 	}
 
-	public function incrementProcessed(): void
-	{
+	public function incrementProcessed(): void {
 		++$this->processed;
 	}
 
-	public function incrementCreated(): void
-	{
+	public function incrementCreated(): void {
 		++$this->created;
 	}
 
-	public function incrementUpdated(): void
-	{
+	public function incrementUpdated(): void {
 		++$this->updated;
 	}
 
-	public function incrementSkipped(): void
-	{
+	public function incrementSkipped(): void {
 		++$this->skipped;
 	}
 
-	public function incrementErrors(): void
-	{
+	public function incrementErrors(): void {
 		++$this->errors;
 	}
 
-	public function getRunId(): string
-	{
+	public function getRunId(): string {
 		return $this->runId;
 	}
 
-	public function markAlreadyRunning(): void
-	{
+	public function markAlreadyRunning(): void {
 		$this->status = 'already_running';
 	}
 
-	public function finish( string $finishedAt ): void
-	{
+	public function finish( string $finishedAt ): void {
 		$this->finishedAt = $finishedAt;
 	}
 
 	/**
 	 * @return array{run_id: string, started_at: string, finished_at: string|null, duration: int|null, status: string, processed: int, created: int, updated: int, skipped: int, errors: int}
 	 */
-	public function toArray(): array
-	{
+	public function toArray(): array {
 		return array(
 			'run_id'      => $this->runId,
 			'started_at'  => $this->startedAt,
@@ -99,8 +89,7 @@ final class SyncResult
 	/**
 	 * Get elapsed whole seconds once the run has finished.
 	 */
-	private function duration(): ?int
-	{
+	private function duration(): ?int {
 		if ( null === $this->finishedAt ) {
 			return null;
 		}

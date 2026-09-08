@@ -90,6 +90,18 @@ The checks cover the content model plus settings validation, token preservation,
 the deployment-level token override, the paginated API client, persistence, and
 structured logging.
 
+## Quality checks
+
+Run the static checks and pure unit tests through the Composer container:
+
+```bash
+docker compose run --rm composer-install check
+docker compose run --rm composer-install lint:fix
+```
+
+GitHub Actions runs the same PHPCS and PHPUnit checks for pull requests and
+pushes to `develop` and `main`.
+
 ## Development workflow
 
 Feature and chore branches are created from `develop` and merged back through

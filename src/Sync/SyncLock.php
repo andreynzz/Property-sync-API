@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 namespace PropertySync\Sync;
 
-final class SyncLock
-{
+final class SyncLock {
+
 	public const OPTION_NAME = 'property_sync_lock';
 
 	private const TTL_SECONDS = 900;
@@ -18,8 +18,7 @@ final class SyncLock
 	/**
 	 * Acquire the lock and return its ownership token, or null if another run owns it.
 	 */
-	public function acquire( string $source ): ?string
-	{
+	public function acquire( string $source ): ?string {
 		$payload = $this->payload( $source );
 
 		if ( add_option( self::OPTION_NAME, $payload, '', false ) ) {
@@ -37,8 +36,7 @@ final class SyncLock
 	/**
 	 * Release the lock only when the caller still owns the matching token.
 	 */
-	public function release( string $token ): void
-	{
+	public function release( string $token ): void {
 		$current = get_option( self::OPTION_NAME, null );
 		if ( ! is_array( $current ) || ! isset( $current['token'] ) || ! hash_equals( (string) $current['token'], $token ) ) {
 			return;
@@ -59,8 +57,7 @@ final class SyncLock
 	/**
 	 * @return array{token: string, started_at: int, source: string}
 	 */
-	private function payload( string $source ): array
-	{
+	private function payload( string $source ): array {
 		return array(
 			'token'      => wp_generate_uuid4(),
 			'started_at' => time(),
@@ -71,8 +68,7 @@ final class SyncLock
 	/**
 	 * @param array<string, mixed> $lock Existing lock value.
 	 */
-	private function isExpired( array $lock ): bool
-	{
+	private function isExpired( array $lock ): bool {
 		return ! isset( $lock['started_at'] ) || ! is_int( $lock['started_at'] ) || $lock['started_at'] <= time() - self::TTL_SECONDS;
 	}
 
@@ -82,8 +78,7 @@ final class SyncLock
 	 * @param array<string, mixed> $current Existing stale payload.
 	 * @param array{token: string, started_at: int, source: string} $replacement New payload.
 	 */
-	private function replaceExpiredLock( array $current, array $replacement ): bool
-	{
+	private function replaceExpiredLock( array $current, array $replacement ): bool {
 		global $wpdb;
 
 		$updated = $wpdb->query(

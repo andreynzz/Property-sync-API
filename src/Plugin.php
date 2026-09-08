@@ -19,8 +19,8 @@ use PropertySync\Logging\SyncLogger;
 use PropertySync\PostType\PropertyPostType;
 use PropertySync\Sync\SyncRunner;
 
-final class Plugin
-{
+final class Plugin {
+
 	private PropertyPostType $propertyPostType;
 
 	private Settings $settings;
@@ -42,8 +42,7 @@ final class Plugin
 		?SyncLogger $logger = null,
 		?SyncRunner $syncRunner = null,
 		?SyncScheduler $syncScheduler = null
-	)
-	{
+	) {
 		$this->propertyPostType = $propertyPostType ?? new PropertyPostType();
 		$this->settings         = $settings ?? new Settings();
 		$logger                 = $logger ?? new SyncLogger();
@@ -56,8 +55,7 @@ final class Plugin
 	/**
 	 * Register the plugin with WordPress.
 	 */
-	public function register(): void
-	{
+	public function register(): void {
 		$this->propertyPostType->registerHooks();
 		$this->settings->registerHooks();
 		$this->adminPage->registerHooks();
@@ -70,8 +68,7 @@ final class Plugin
 	/**
 	 * Signal that the plugin and its dependencies are available.
 	 */
-	public function boot(): void
-	{
+	public function boot(): void {
 		/**
 		 * Fires after Property Sync API has loaded.
 		 *

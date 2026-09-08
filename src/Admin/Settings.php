@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 namespace PropertySync\Admin;
 
-final class Settings
-{
+final class Settings {
+
 	public const OPTION_NAME = 'property_sync_settings';
 
 	public const PAGE_SLUG = 'property-sync';
@@ -22,16 +22,14 @@ final class Settings
 	/**
 	 * Register settings hooks.
 	 */
-	public function registerHooks(): void
-	{
+	public function registerHooks(): void {
 		add_action( 'admin_init', array( $this, 'register' ) );
 	}
 
 	/**
 	 * Register the structured option and its fields.
 	 */
-	public function register(): void
-	{
+	public function register(): void {
 		$this->ensureOptionExists();
 
 		register_setting(
@@ -61,8 +59,7 @@ final class Settings
 	 *
 	 * @return array{api_url: string, api_token: string, interval: string}
 	 */
-	public function get(): array
-	{
+	public function get(): array {
 		$settings = get_option( self::OPTION_NAME, array() );
 
 		return wp_parse_args( is_array( $settings ) ? $settings : array(), $this->defaults() );
@@ -71,8 +68,7 @@ final class Settings
 	/**
 	 * Get the effective API token, preferring the deployment constant.
 	 */
-	public function getApiToken(): string
-	{
+	public function getApiToken(): string {
 		if ( $this->isTokenOverridden() ) {
 			return (string) constant( 'PROPERTY_SYNC_API_TOKEN' );
 		}
@@ -83,8 +79,7 @@ final class Settings
 	/**
 	 * Whether a deployment-level token overrides the stored setting.
 	 */
-	public function isTokenOverridden(): bool
-	{
+	public function isTokenOverridden(): bool {
 		return defined( 'PROPERTY_SYNC_API_TOKEN' ) && '' !== trim( (string) constant( 'PROPERTY_SYNC_API_TOKEN' ) );
 	}
 
@@ -94,11 +89,10 @@ final class Settings
 	 * @param mixed $input Raw Settings API input.
 	 * @return array{api_url: string, api_token: string, interval: string}
 	 */
-	public function sanitize( mixed $input ): array
-	{
-		$current = $this->get();
-		$input   = is_array( $input ) ? $input : array();
-		$url     = trim( (string) ( $input['api_url'] ?? '' ) );
+	public function sanitize( mixed $input ): array {
+		$current  = $this->get();
+		$input    = is_array( $input ) ? $input : array();
+		$url      = trim( (string) ( $input['api_url'] ?? '' ) );
 		$interval = (string) ( $input['interval'] ?? $current['interval'] );
 
 		if ( '' !== $url && ! $this->isAllowedApiUrl( $url ) ) {
@@ -130,16 +124,14 @@ final class Settings
 	/**
 	 * Render the section guidance.
 	 */
-	public function renderSectionDescription(): void
-	{
+	public function renderSectionDescription(): void {
 		echo '<p>' . esc_html__( 'Configure the external API used by future synchronization runs.', 'property-sync' ) . '</p>';
 	}
 
 	/**
 	 * Render the API URL field.
 	 */
-	public function renderApiUrlField(): void
-	{
+	public function renderApiUrlField(): void {
 		$settings = $this->get();
 		printf(
 			'<input class="regular-text code" id="property_sync_api_url" name="%1$s[api_url]" type="url" value="%2$s" placeholder="https://api.example.com/properties" />',
@@ -152,8 +144,7 @@ final class Settings
 	/**
 	 * Render a masked token field.
 	 */
-	public function renderApiTokenField(): void
-	{
+	public function renderApiTokenField(): void {
 		if ( $this->isTokenOverridden() ) {
 			echo '<input class="regular-text" type="text" value="' . esc_attr__( 'Defined by PROPERTY_SYNC_API_TOKEN', 'property-sync' ) . '" readonly />';
 			echo '<p class="description">' . esc_html__( 'This value is supplied by your deployment configuration and cannot be changed here.', 'property-sync' ) . '</p>';
@@ -172,8 +163,7 @@ final class Settings
 	/**
 	 * Render the scheduling interval selector.
 	 */
-	public function renderIntervalField(): void
-	{
+	public function renderIntervalField(): void {
 		$interval = $this->get()['interval'];
 		$labels   = array(
 			'disabled'   => __( 'Disabled', 'property-sync' ),
@@ -192,8 +182,7 @@ final class Settings
 	/**
 	 * Ensure this security-sensitive option is not autoloaded.
 	 */
-	private function ensureOptionExists(): void
-	{
+	private function ensureOptionExists(): void {
 		if ( null !== get_option( self::OPTION_NAME, null ) ) {
 			return;
 		}
@@ -204,8 +193,7 @@ final class Settings
 	/**
 	 * Validate a URL and allow insecure transport only for development hosts.
 	 */
-	private function isAllowedApiUrl( string $url ): bool
-	{
+	private function isAllowedApiUrl( string $url ): bool {
 		$url    = esc_url_raw( $url );
 		$parts  = wp_parse_url( $url );
 		$scheme = $parts['scheme'] ?? '';
@@ -225,8 +213,7 @@ final class Settings
 	/**
 	 * @return array{api_url: string, api_token: string, interval: string}
 	 */
-	private function defaults(): array
-	{
+	private function defaults(): array {
 		return array(
 			'api_url'   => '',
 			'api_token' => '',

@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 namespace PropertySync\PostType;
 
-final class PropertyPostType
-{
+final class PropertyPostType {
+
 	public const POST_TYPE = 'property';
 
 	public const TYPE_TAXONOMY = 'property_type';
@@ -22,16 +22,14 @@ final class PropertyPostType
 	/**
 	 * Register the content model on WordPress init.
 	 */
-	public function registerHooks(): void
-	{
+	public function registerHooks(): void {
 		add_action( 'init', array( $this, 'register' ) );
 	}
 
 	/**
 	 * Register the post type, taxonomies, and metadata.
 	 */
-	public function register(): void
-	{
+	public function register(): void {
 		$this->registerPostType();
 		$this->registerTaxonomies();
 		$this->registerMeta();
@@ -40,12 +38,11 @@ final class PropertyPostType
 	/**
 	 * Register the property custom post type.
 	 */
-	private function registerPostType(): void
-	{
+	private function registerPostType(): void {
 		register_post_type(
 			self::POST_TYPE,
 			array(
-				'labels'             => array(
+				'labels'              => array(
 					'name'                  => __( 'Properties', 'property-sync' ),
 					'singular_name'         => __( 'Property', 'property-sync' ),
 					'add_new'               => __( 'Add New', 'property-sync' ),
@@ -64,20 +61,20 @@ final class PropertyPostType
 					'uploaded_to_this_item' => __( 'Uploaded to this property', 'property-sync' ),
 					'menu_name'             => __( 'Properties', 'property-sync' ),
 				),
-				'public'             => true,
-				'show_in_rest'       => true,
-				'has_archive'        => true,
-				'rewrite'            => array( 'slug' => 'properties' ),
-				'menu_icon'          => 'dashicons-building',
-				'menu_position'      => 20,
-				'supports'           => array( 'title', 'editor', 'thumbnail' ),
-				'taxonomies'         => array(
+				'public'              => true,
+				'show_in_rest'        => true,
+				'has_archive'         => true,
+				'rewrite'             => array( 'slug' => 'properties' ),
+				'menu_icon'           => 'dashicons-building',
+				'menu_position'       => 20,
+				'supports'            => array( 'title', 'editor', 'thumbnail' ),
+				'taxonomies'          => array(
 					self::TYPE_TAXONOMY,
 					self::CITY_TAXONOMY,
 					self::STATUS_TAXONOMY,
 				),
-				'delete_with_user'   => false,
-				'show_in_nav_menus'  => true,
+				'delete_with_user'    => false,
+				'show_in_nav_menus'   => true,
 				'exclude_from_search' => false,
 			)
 		);
@@ -86,8 +83,7 @@ final class PropertyPostType
 	/**
 	 * Register property taxonomies.
 	 */
-	private function registerTaxonomies(): void
-	{
+	private function registerTaxonomies(): void {
 		register_taxonomy(
 			self::TYPE_TAXONOMY,
 			self::POST_TYPE,
@@ -161,8 +157,7 @@ final class PropertyPostType
 	/**
 	 * Register internal metadata with explicit storage types and sanitization.
 	 */
-	private function registerMeta(): void
-	{
+	private function registerMeta(): void {
 		$fields = array(
 			'_property_external_id'         => array(
 				'type'              => 'string',
@@ -226,8 +221,7 @@ final class PropertyPostType
 	 *
 	 * @param mixed $value Raw metadata value.
 	 */
-	public function sanitizeDecimal( mixed $value ): string
-	{
+	public function sanitizeDecimal( mixed $value ): string {
 		$value = trim( (string) $value );
 
 		if ( 1 !== preg_match( '/^\d+(?:\.\d{1,2})?$/', $value ) ) {
@@ -246,8 +240,7 @@ final class PropertyPostType
 	 *
 	 * @param mixed $value Raw metadata value.
 	 */
-	public function sanitizeHash( mixed $value ): string
-	{
+	public function sanitizeHash( mixed $value ): string {
 		$value = strtolower( trim( (string) $value ) );
 
 		return 1 === preg_match( '/^[a-f0-9]{64}$/', $value ) ? $value : '';

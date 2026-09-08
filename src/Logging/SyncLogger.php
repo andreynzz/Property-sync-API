@@ -11,8 +11,8 @@ namespace PropertySync\Logging;
 
 use PropertySync\Sync\SyncResult;
 
-final class SyncLogger
-{
+final class SyncLogger {
+
 	public const LAST_RESULT_OPTION = 'property_sync_last_result';
 
 	private const MAX_ROWS = 5000;
@@ -24,8 +24,7 @@ final class SyncLogger
 	 *
 	 * @param array<string, mixed> $context Safe diagnostic context.
 	 */
-	public function log( string $runId, string $level, string $event, string $message, ?string $externalId = null, array $context = array() ): void
-	{
+	public function log( string $runId, string $level, string $event, string $message, ?string $externalId = null, array $context = array() ): void {
 		global $wpdb;
 
 		$wpdb->insert(
@@ -46,8 +45,7 @@ final class SyncLogger
 	/**
 	 * Persist the last completed result without autoloading it on every request.
 	 */
-	public function storeLastResult( SyncResult $result ): void
-	{
+	public function storeLastResult( SyncResult $result ): void {
 		$summary = $result->toArray();
 
 		if ( false === get_option( self::LAST_RESULT_OPTION, false ) ) {
@@ -63,8 +61,7 @@ final class SyncLogger
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	public function getRecent( int $limit = 50 ): array
-	{
+	public function getRecent( int $limit = 50 ): array {
 		global $wpdb;
 
 		$limit = max( 1, min( 50, $limit ) );
@@ -76,8 +73,7 @@ final class SyncLogger
 	/**
 	 * Retain at most 30 days and 5,000 newest events.
 	 */
-	public function prune(): void
-	{
+	public function prune(): void {
 		global $wpdb;
 
 		$tableName = $this->tableName();
@@ -98,15 +94,13 @@ final class SyncLogger
 		$wpdb->query( $wpdb->prepare( "DELETE FROM {$tableName} WHERE id < %d", (int) $oldestKeptId ) );
 	}
 
-	private function tableName(): string
-	{
+	private function tableName(): string {
 		global $wpdb;
 
 		return $wpdb->prefix . 'property_sync_logs';
 	}
 
-	private function level( string $level ): string
-	{
+	private function level( string $level ): string {
 		$level = strtoupper( $level );
 
 		return in_array( $level, array( 'INFO', 'CREATED', 'UPDATED', 'SKIPPED', 'ERROR' ), true ) ? $level : 'ERROR';
@@ -115,8 +109,7 @@ final class SyncLogger
 	/**
 	 * @param array<string, mixed> $context Potentially sensitive context.
 	 */
-	private function contextJson( array $context ): ?string
-	{
+	private function contextJson( array $context ): ?string {
 		if ( array() === $context ) {
 			return null;
 		}
@@ -130,8 +123,7 @@ final class SyncLogger
 	 * @param array<string, mixed> $context Context values.
 	 * @return array<string, mixed>
 	 */
-	private function sanitizeContext( array $context ): array
-	{
+	private function sanitizeContext( array $context ): array {
 		$sanitized = array();
 
 		foreach ( $context as $key => $value ) {

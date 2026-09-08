@@ -13,8 +13,8 @@ use PropertySync\Logging\SyncLogger;
 use PropertySync\Api\PropertyApiClient;
 use Throwable;
 
-final class SyncRunner
-{
+final class SyncRunner {
+
 	private PropertyApiClient $apiClient;
 
 	private PropertyNormalizer $normalizer;
@@ -34,22 +34,20 @@ final class SyncRunner
 		?PropertyRepository $repository = null,
 		?SyncLogger $logger = null,
 		?SyncLock $lock = null
-	)
-	{
-		$this->apiClient   = $apiClient ?? new PropertyApiClient();
-		$this->normalizer  = $normalizer ?? new PropertyNormalizer();
-		$this->hasher      = $hasher ?? new PropertyHasher();
-		$this->repository  = $repository ?? new PropertyRepository();
-		$this->logger      = $logger ?? new SyncLogger();
-		$this->lock        = $lock ?? new SyncLock();
+	) {
+		$this->apiClient  = $apiClient ?? new PropertyApiClient();
+		$this->normalizer = $normalizer ?? new PropertyNormalizer();
+		$this->hasher     = $hasher ?? new PropertyHasher();
+		$this->repository = $repository ?? new PropertyRepository();
+		$this->logger     = $logger ?? new SyncLogger();
+		$this->lock       = $lock ?? new SyncLock();
 	}
 
 	/**
 	 * Run a complete sync. A transport or API-level error stops the run, while
 	 * one malformed property is counted and does not block the remaining items.
 	 */
-	public function run( string $source = 'manual' ): SyncResult
-	{
+	public function run( string $source = 'manual' ): SyncResult {
 		$result = new SyncResult( wp_generate_uuid4(), gmdate( 'Y-m-d\TH:i:s\Z' ) );
 		$runId  = $result->getRunId();
 		$token  = $this->lock->acquire( $source );
@@ -90,8 +88,7 @@ final class SyncRunner
 	/**
 	 * @param array<string, mixed> $property External property payload.
 	 */
-	private function syncProperty( array $property, SyncResult $result ): void
-	{
+	private function syncProperty( array $property, SyncResult $result ): void {
 		try {
 			$normalized = $this->normalizer->normalize( $property );
 			$hash       = $this->hasher->hash( $normalized );
