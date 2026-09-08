@@ -2,14 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## [Unreleased]
-
-### Added
-
-- Portfolio documentation for setup, operation, architecture, security,
-  synchronization, testing, and MVP limits.
-
-## [0.1.0] - 2026-09-08
+## [1.0.0] - 2026-09-08
 
 ### Added
 
@@ -27,6 +20,8 @@ All notable changes to this project are documented here.
   synchronization workflow, WP-Cron scheduling, and a concurrency lock.
 - PHPUnit tests, WordPress smoke checks, WordPress Coding Standards,
   PHPCompatibility, GitHub Actions CI, and GitHub issue/PR templates.
+- Portfolio documentation for setup, operation, architecture, security,
+  synchronization, testing, and MVP limits.
 
 ### Security
 
