@@ -25,12 +25,15 @@ final class SyncRunner
 
 	private SyncLogger $logger;
 
+	private SyncLock $lock;
+
 	public function __construct(
 		?PropertyApiClient $apiClient = null,
 		?PropertyNormalizer $normalizer = null,
 		?PropertyHasher $hasher = null,
 		?PropertyRepository $repository = null,
-		?SyncLogger $logger = null
+		?SyncLogger $logger = null,
+		?SyncLock $lock = null
 	)
 	{
 		$this->apiClient   = $apiClient ?? new PropertyApiClient();
@@ -38,16 +41,27 @@ final class SyncRunner
 		$this->hasher      = $hasher ?? new PropertyHasher();
 		$this->repository  = $repository ?? new PropertyRepository();
 		$this->logger      = $logger ?? new SyncLogger();
+		$this->lock        = $lock ?? new SyncLock();
 	}
 
 	/**
 	 * Run a complete sync. A transport or API-level error stops the run, while
 	 * one malformed property is counted and does not block the remaining items.
 	 */
-	public function run(): SyncResult
+	public function run( string $source = 'manual' ): SyncResult
 	{
 		$result = new SyncResult( wp_generate_uuid4(), gmdate( 'Y-m-d\TH:i:s\Z' ) );
 		$runId  = $result->getRunId();
+		$token  = $this->lock->acquire( $source );
+
+		if ( null === $token ) {
+			$result->markAlreadyRunning();
+			$result->finish( gmdate( 'Y-m-d\TH:i:s\Z' ) );
+			$this->logger->log( $runId, 'INFO', 'sync_already_running', 'Property synchronization was already running.' );
+
+			return $result;
+		}
+
 		$this->logger->log( $runId, 'INFO', 'sync_started', 'Property synchronization started.' );
 
 		try {
@@ -60,9 +74,14 @@ final class SyncRunner
 			throw $exception;
 		} finally {
 			$result->finish( gmdate( 'Y-m-d\TH:i:s\Z' ) );
-			$this->logger->storeLastResult( $result );
-			$this->logger->log( $runId, 'INFO', 'sync_finished', 'Property synchronization finished.' );
-			$this->logger->prune();
+
+			try {
+				$this->logger->storeLastResult( $result );
+				$this->logger->log( $runId, 'INFO', 'sync_finished', 'Property synchronization finished.' );
+				$this->logger->prune();
+			} finally {
+				$this->lock->release( $token );
+			}
 		}
 
 		return $result;

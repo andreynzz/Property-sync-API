@@ -16,6 +16,8 @@ defined( 'ABSPATH' ) || exit;
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Synchronization completed. Review the summary below.', 'property-sync' ); ?></p></div>
 	<?php elseif ( 'error' === $notice ) : ?>
 		<div class="notice notice-error"><p><?php esc_html_e( 'Synchronization could not complete. Review recent activity for details.', 'property-sync' ); ?></p></div>
+	<?php elseif ( 'already_running' === $notice ) : ?>
+		<div class="notice notice-warning"><p><?php esc_html_e( 'A synchronization is already running. Try again shortly.', 'property-sync' ); ?></p></div>
 	<?php endif; ?>
 
 	<div class="property-sync-admin__grid">
