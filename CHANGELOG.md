@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Added
+
+- Real WordPress dashboard, synchronization summary, and activity-log
+  screenshots.
+- A reusable release-notes template for future semantic releases.
+- Integration coverage for expected item failures, unexpected error
+  propagation, failed-run state, and lock release.
+
+### Changed
+
+- Expected property persistence rejections now use a focused domain exception.
+- Synchronization logs distinguish invalid payloads, persistence failures, API
+  failures, and unexpected programming errors using safe diagnostic context.
+- README and architecture documentation now foreground business context,
+  engineering decisions, project workflow, and portfolio presentation.
+- The deterministic mock feed now includes five varied property listings.
+
+### Fixed
+
+- Unexpected `Throwable` instances are no longer swallowed as ordinary
+  per-property errors; they abort and propagate after cleanup.
+
 ## [1.0.1] - 2026-09-08
 
 ### Fixed
