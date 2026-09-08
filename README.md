@@ -7,9 +7,10 @@ and a professional Git workflow.
 
 ## Current status
 
-The project is in the bootstrap milestone. The repository currently provides:
+The bootstrap and property content model milestones are complete. The repository currently provides:
 
 - an activatable WordPress plugin with PSR-4 autoloading;
+- a public property post type with REST-enabled taxonomies and typed metadata;
 - a Docker-based WordPress development environment;
 - a deterministic mock property API;
 - WP-CLI and Composer containers for host-independent tooling.
@@ -39,6 +40,7 @@ PHP and Composer do not need to be installed on the host.
 
    ```bash
    docker compose run --rm wpcli wp core install --url=http://localhost:8080 --title="Property Sync" --admin_user=admin --admin_password=admin --admin_email=admin@example.com --skip-email
+   docker compose run --rm wpcli wp rewrite structure '/%postname%/' --hard
    docker compose run --rm wpcli wp plugin activate property-sync
    ```
 
@@ -66,6 +68,17 @@ docker compose down
 
 Use `docker compose down -v` only when you intentionally want to delete the
 local WordPress database and uploaded files.
+
+## Smoke tests
+
+Run the content model check against the local WordPress installation:
+
+```bash
+docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/content-model.php
+```
+
+The check covers CPT visibility, taxonomy registration, metadata registration,
+and sanitization of decimal and hash values.
 
 ## Development workflow
 
