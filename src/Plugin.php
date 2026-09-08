@@ -11,6 +11,7 @@ namespace PropertySync;
 
 use PropertySync\Admin\AdminPage;
 use PropertySync\Admin\Settings;
+use PropertySync\Activation\Activator;
 use PropertySync\PostType\PropertyPostType;
 
 final class Plugin
@@ -43,6 +44,7 @@ final class Plugin
 		$this->propertyPostType->registerHooks();
 		$this->settings->registerHooks();
 		$this->adminPage->registerHooks();
+		add_action( 'plugins_loaded', array( Activator::class, 'maybeUpgrade' ) );
 		add_action( 'plugins_loaded', array( $this, 'boot' ) );
 	}
 

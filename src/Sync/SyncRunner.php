@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace PropertySync\Sync;
 
+use PropertySync\Logging\SyncLogger;
 use PropertySync\Api\PropertyApiClient;
 use Throwable;
 
@@ -22,17 +23,21 @@ final class SyncRunner
 
 	private PropertyRepository $repository;
 
+	private SyncLogger $logger;
+
 	public function __construct(
 		?PropertyApiClient $apiClient = null,
 		?PropertyNormalizer $normalizer = null,
 		?PropertyHasher $hasher = null,
-		?PropertyRepository $repository = null
+		?PropertyRepository $repository = null,
+		?SyncLogger $logger = null
 	)
 	{
 		$this->apiClient   = $apiClient ?? new PropertyApiClient();
 		$this->normalizer  = $normalizer ?? new PropertyNormalizer();
 		$this->hasher      = $hasher ?? new PropertyHasher();
 		$this->repository  = $repository ?? new PropertyRepository();
+		$this->logger      = $logger ?? new SyncLogger();
 	}
 
 	/**
@@ -42,14 +47,22 @@ final class SyncRunner
 	public function run(): SyncResult
 	{
 		$result = new SyncResult( wp_generate_uuid4(), gmdate( 'Y-m-d\TH:i:s\Z' ) );
+		$runId  = $result->getRunId();
+		$this->logger->log( $runId, 'INFO', 'sync_started', 'Property synchronization started.' );
 
 		try {
 			foreach ( $this->apiClient->fetchProperties() as $property ) {
 				$result->incrementProcessed();
 				$this->syncProperty( $property, $result );
 			}
+		} catch ( Throwable $exception ) {
+			$this->logger->log( $runId, 'ERROR', 'sync_failed', 'Property synchronization stopped because the API could not be read.' );
+			throw $exception;
 		} finally {
 			$result->finish( gmdate( 'Y-m-d\TH:i:s\Z' ) );
+			$this->logger->storeLastResult( $result );
+			$this->logger->log( $runId, 'INFO', 'sync_finished', 'Property synchronization finished.' );
+			$this->logger->prune();
 		}
 
 		return $result;
@@ -68,18 +81,23 @@ final class SyncRunner
 			if ( null === $postId ) {
 				$this->repository->create( $normalized, $hash );
 				$result->incrementCreated();
+				$this->logger->log( $result->getRunId(), 'CREATED', 'property_created', 'Property created.', $normalized['external_id'] );
 				return;
 			}
 
 			if ( hash_equals( $this->repository->getHash( $postId ), $hash ) ) {
 				$result->incrementSkipped();
+				$this->logger->log( $result->getRunId(), 'SKIPPED', 'property_skipped', 'Property unchanged.', $normalized['external_id'] );
 				return;
 			}
 
 			$this->repository->update( $postId, $normalized, $hash );
 			$result->incrementUpdated();
+			$this->logger->log( $result->getRunId(), 'UPDATED', 'property_updated', 'Property updated.', $normalized['external_id'] );
 		} catch ( Throwable $exception ) {
 			$result->incrementErrors();
+			$externalId = isset( $property['external_id'] ) && is_string( $property['external_id'] ) ? $property['external_id'] : null;
+			$this->logger->log( $result->getRunId(), 'ERROR', 'property_failed', 'Property could not be synchronized.', $externalId );
 		}
 	}
 }
