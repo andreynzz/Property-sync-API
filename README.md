@@ -77,10 +77,12 @@ Run the content model check against the local WordPress installation:
 ```bash
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/content-model.php
 docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/admin-settings.php
+docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/api-client.php
+docker compose run --rm wpcli wp eval-file wp-content/plugins/property-sync/tests/Smoke/api-client-mock.php
 ```
 
 The checks cover the content model plus settings validation, token preservation,
-and the deployment-level token override.
+the deployment-level token override, and the paginated API client.
 
 ## Development workflow
 

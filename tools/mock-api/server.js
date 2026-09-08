@@ -28,6 +28,23 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  const scenario = url.searchParams.get('scenario');
+
+  if (scenario === 'server-error') {
+    sendJson(response, 500, { error: 'server_error' });
+    return;
+  }
+
+  if (scenario === 'invalid-json') {
+    response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    response.end('{invalid json');
+    return;
+  }
+
+  if (scenario === 'slow') {
+    await new Promise((resolve) => setTimeout(resolve, 16000));
+  }
+
   try {
     const properties = JSON.parse(await readFile(fixtureUrl, 'utf8'));
     const requestedPage = Number.parseInt(url.searchParams.get('page') ?? '1', 10);
