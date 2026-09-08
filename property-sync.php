@@ -3,7 +3,7 @@
  * Plugin Name:       Property Sync API
  * Plugin URI:        https://github.com/andreynzz/plugin-wp-sync-api
  * Description:       Synchronizes real-estate listings from an external REST API.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Andrey
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PROPERTY_SYNC_VERSION', '1.0.0' );
+define( 'PROPERTY_SYNC_VERSION', '1.0.1' );
 define( 'PROPERTY_SYNC_FILE', __FILE__ );
 define( 'PROPERTY_SYNC_PATH', plugin_dir_path( __FILE__ ) );
 

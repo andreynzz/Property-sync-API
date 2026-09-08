@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.1] - 2026-09-08
+
+### Fixed
+
+- Composer dependency resolution now targets PHP 8.1, keeping the locked
+  PHPUnit dependency chain compatible with the CI runtime.
+- PHPUnit result caching is disabled to avoid write warnings in mounted local
+  development volumes.
+
+### Changed
+
+- Added the GPL-2.0-or-later copyright notice for Andrey da Hora Pirola.
+
 ## [1.0.0] - 2026-09-08
 
 ### Added
