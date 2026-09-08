@@ -1,0 +1,9 @@
+/.env
+/.idea/
+/.vscode/
+/node_modules/
+/vendor/
+/.phpunit.cache/
+/.phpcs-cache
+*.log
+*.zip

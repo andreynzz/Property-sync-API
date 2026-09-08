@@ -1,0 +1,47 @@
+[
+  {
+    "external_id": "PROP-1001",
+    "title": "Modern apartment downtown",
+    "description": "Two-bedroom apartment close to public transport.",
+    "price": "485000.00",
+    "property_type": "apartment",
+    "city": "Sao Paulo",
+    "neighborhood": "Pinheiros",
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "area": "78.50",
+    "status": "available",
+    "image_url": "https://example.com/images/prop-1001.jpg",
+    "updated_at": "2026-09-01T14:30:00Z"
+  },
+  {
+    "external_id": "PROP-1002",
+    "title": "Family house with garden",
+    "description": "Detached house with three bedrooms and a private garden.",
+    "price": "790000.00",
+    "property_type": "house",
+    "city": "Campinas",
+    "neighborhood": "Cambui",
+    "bedrooms": 3,
+    "bathrooms": 3,
+    "area": "165.00",
+    "status": "available",
+    "image_url": "https://example.com/images/prop-1002.jpg",
+    "updated_at": "2026-09-02T09:15:00Z"
+  },
+  {
+    "external_id": "PROP-1003",
+    "title": "Compact studio near university",
+    "description": "Furnished studio suited for students and investors.",
+    "price": "245000.00",
+    "property_type": "studio",
+    "city": "Sao Paulo",
+    "neighborhood": "Butanta",
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "area": "32.00",
+    "status": "reserved",
+    "image_url": "https://example.com/images/prop-1003.jpg",
+    "updated_at": "2026-09-03T18:45:00Z"
+  }
+]
