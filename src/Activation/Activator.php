@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace PropertySync\Activation;
 
+use PropertySync\Cron\SyncScheduler;
 use PropertySync\PostType\PropertyPostType;
 
 final class Activator
@@ -32,6 +33,7 @@ final class Activator
 
 		( new PropertyPostType() )->register();
 		self::maybeUpgrade();
+		( new SyncScheduler() )->ensureScheduled();
 		flush_rewrite_rules();
 	}
 

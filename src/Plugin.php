@@ -14,6 +14,7 @@ use PropertySync\Admin\ManualSyncAction;
 use PropertySync\Admin\Settings;
 use PropertySync\Activation\Activator;
 use PropertySync\Api\PropertyApiClient;
+use PropertySync\Cron\SyncScheduler;
 use PropertySync\Logging\SyncLogger;
 use PropertySync\PostType\PropertyPostType;
 use PropertySync\Sync\SyncRunner;
@@ -28,6 +29,8 @@ final class Plugin
 
 	private ManualSyncAction $manualSyncAction;
 
+	private SyncScheduler $syncScheduler;
+
 	/**
 	 * Build the plugin with explicit dependencies.
 	 */
@@ -37,7 +40,8 @@ final class Plugin
 		?AdminPage $adminPage = null,
 		?ManualSyncAction $manualSyncAction = null,
 		?SyncLogger $logger = null,
-		?SyncRunner $syncRunner = null
+		?SyncRunner $syncRunner = null,
+		?SyncScheduler $syncScheduler = null
 	)
 	{
 		$this->propertyPostType = $propertyPostType ?? new PropertyPostType();
@@ -46,6 +50,7 @@ final class Plugin
 		$syncRunner             = $syncRunner ?? new SyncRunner( new PropertyApiClient( $this->settings ), null, null, null, $logger );
 		$this->adminPage        = $adminPage ?? new AdminPage( $logger );
 		$this->manualSyncAction = $manualSyncAction ?? new ManualSyncAction( $syncRunner );
+		$this->syncScheduler    = $syncScheduler ?? new SyncScheduler( $this->settings, $syncRunner );
 	}
 
 	/**
@@ -57,6 +62,7 @@ final class Plugin
 		$this->settings->registerHooks();
 		$this->adminPage->registerHooks();
 		$this->manualSyncAction->registerHooks();
+		$this->syncScheduler->registerHooks();
 		add_action( 'plugins_loaded', array( Activator::class, 'maybeUpgrade' ) );
 		add_action( 'plugins_loaded', array( $this, 'boot' ) );
 	}

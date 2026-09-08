@@ -29,6 +29,8 @@ final class SyncResult
 
 	private int $errors = 0;
 
+	private string $status = 'completed';
+
 	public function __construct( string $runId, string $startedAt )
 	{
 		$this->runId     = $runId;
@@ -65,13 +67,18 @@ final class SyncResult
 		return $this->runId;
 	}
 
+	public function markAlreadyRunning(): void
+	{
+		$this->status = 'already_running';
+	}
+
 	public function finish( string $finishedAt ): void
 	{
 		$this->finishedAt = $finishedAt;
 	}
 
 	/**
-	 * @return array{run_id: string, started_at: string, finished_at: string|null, duration: int|null, processed: int, created: int, updated: int, skipped: int, errors: int}
+	 * @return array{run_id: string, started_at: string, finished_at: string|null, duration: int|null, status: string, processed: int, created: int, updated: int, skipped: int, errors: int}
 	 */
 	public function toArray(): array
 	{
@@ -80,6 +87,7 @@ final class SyncResult
 			'started_at'  => $this->startedAt,
 			'finished_at' => $this->finishedAt,
 			'duration'    => $this->duration(),
+			'status'      => $this->status,
 			'processed'   => $this->processed,
 			'created'     => $this->created,
 			'updated'     => $this->updated,

@@ -44,10 +44,11 @@ final class ManualSyncAction
 
 		try {
 			$result = $this->runner->run()->toArray();
+			$notice = 'already_running' === $result['status'] ? 'already_running' : 'success';
 			$url    = add_query_arg(
 				array(
 					'page'                 => Settings::PAGE_SLUG,
-					'property_sync_notice' => 'success',
+					'property_sync_notice' => $notice,
 					'property_sync_created' => $result['created'],
 					'property_sync_updated' => $result['updated'],
 					'property_sync_skipped' => $result['skipped'],
