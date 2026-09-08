@@ -45,6 +45,13 @@ positive JSON integers; `total` is a non-negative JSON integer. `next_page` is
 either `null` or a positive integer greater than the current page and no larger
 than `total_pages`.
 
+Each property item must provide non-empty strings for `external_id`, `title`,
+`description`, `property_type`, `city`, `neighborhood`, and `status`; decimal
+strings with up to two fractional digits for `price` and `area`; non-negative
+JSON integers for `bedrooms` and `bathrooms`; an absolute HTTP(S) `image_url`;
+and an ISO 8601 `updated_at` timestamp. Unknown fields are discarded during
+normalization.
+
 The plugin limits requests to 50 items per page and 100 pages per run. It
 rejects malformed JSON, malformed envelopes, non-2xx responses, and pagination
 loops before handing items to the normalization stage.
