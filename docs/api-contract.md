@@ -53,8 +53,13 @@ and an ISO 8601 `updated_at` timestamp. Unknown fields are discarded during
 normalization.
 
 The plugin limits requests to 50 items per page and 100 pages per run. It
-rejects malformed JSON, malformed envelopes, non-2xx responses, and pagination
-loops before handing items to the normalization stage.
+rejects malformed JSON, malformed envelopes, non-2xx responses, pagination
+loops, and unexpected page metadata before handing items to the normalization
+stage. Requests use the WordPress HTTP API with a 15-second timeout and a
+maximum of three redirects.
+
+The API URL must be HTTPS in production. The plugin permits HTTP only for the
+local development hosts `localhost`, `127.0.0.1`, `::1`, and `mock-api`.
 
 ## Local mock scenarios
 
