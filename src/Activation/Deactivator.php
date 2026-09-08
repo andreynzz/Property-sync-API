@@ -11,13 +11,14 @@ namespace PropertySync\Activation;
 
 final class Deactivator
 {
-    private const CRON_HOOK = 'property_sync_run_scheduled';
+	private const CRON_HOOK = 'property_sync_run_scheduled';
 
-    /**
-     * Remove scheduled work while preserving user data.
-     */
-    public static function deactivate(): void
-    {
-        wp_clear_scheduled_hook(self::CRON_HOOK);
-    }
+	/**
+	 * Remove scheduled work and plugin rewrite rules while preserving user data.
+	 */
+	public static function deactivate(): void
+	{
+		wp_clear_scheduled_hook( self::CRON_HOOK );
+		flush_rewrite_rules();
+	}
 }
