@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace PropertySync\Sync;
 
 use PropertySync\PostType\PropertyPostType;
-use RuntimeException;
 use WP_Error;
 
 final class PropertyRepository {
@@ -18,7 +17,7 @@ final class PropertyRepository {
 	/**
 	 * Find one property by its externally-owned identifier.
 	 *
-	 * @throws RuntimeException When an integrity violation produces duplicate records.
+	 * @throws PropertyPersistenceException When an integrity violation produces duplicate records.
 	 */
 	public function findIdByExternalId( string $externalId ): ?int {
 		$postIds = get_posts(
@@ -41,7 +40,7 @@ final class PropertyRepository {
 		);
 
 		if ( count( $postIds ) > 1 ) {
-			throw new RuntimeException( 'Multiple properties share the same external ID.' );
+			throw new PropertyPersistenceException( 'Multiple properties share the same external ID.' );
 		}
 
 		return isset( $postIds[0] ) ? (int) $postIds[0] : null;
@@ -51,12 +50,12 @@ final class PropertyRepository {
 	 * Create a published property and persist its synchronized fields.
 	 *
 	 * @param array<string, mixed> $property Normalized property data.
-	 * @throws RuntimeException When WordPress cannot persist the property.
+	 * @throws PropertyPersistenceException When WordPress cannot persist the property.
 	 */
 	public function create( array $property, string $hash ): int {
 		$postId = wp_insert_post( $this->postData( $property ), true );
 		if ( $postId instanceof WP_Error ) {
-			throw new RuntimeException( 'Unable to create property.', 0, $postId );
+			throw new PropertyPersistenceException( 'Unable to create property.', 0, $postId );
 		}
 
 		$this->persistFields( $postId, $property, $hash );
@@ -68,7 +67,7 @@ final class PropertyRepository {
 	 * Update a synchronized property and its fields.
 	 *
 	 * @param array<string, mixed> $property Normalized property data.
-	 * @throws RuntimeException When WordPress cannot persist the property.
+	 * @throws PropertyPersistenceException When WordPress cannot persist the property.
 	 */
 	public function update( int $postId, array $property, string $hash ): void {
 		$postData       = $this->postData( $property );
@@ -76,7 +75,7 @@ final class PropertyRepository {
 		$result         = wp_update_post( $postData, true );
 
 		if ( $result instanceof WP_Error ) {
-			throw new RuntimeException( 'Unable to update property.', 0, $result );
+			throw new PropertyPersistenceException( 'Unable to update property.', 0, $result );
 		}
 
 		$this->persistFields( $postId, $property, $hash );
@@ -104,7 +103,7 @@ final class PropertyRepository {
 
 	/**
 	 * @param array<string, mixed> $property Normalized property data.
-	 * @throws RuntimeException When metadata or terms cannot be saved.
+	 * @throws PropertyPersistenceException When metadata or terms cannot be saved.
 	 */
 	private function persistFields( int $postId, array $property, string $hash ): void {
 		$metadata = array(
@@ -124,7 +123,7 @@ final class PropertyRepository {
 			if ( false === update_post_meta( $postId, $key, $value ) ) {
 				$existing = get_post_meta( $postId, $key, true );
 				if ( (string) $existing !== (string) $value ) {
-					throw new RuntimeException( 'Unable to save property metadata.' );
+					throw new PropertyPersistenceException( 'Unable to save property metadata.' );
 				}
 			}
 		}
@@ -135,12 +134,12 @@ final class PropertyRepository {
 	}
 
 	/**
-	 * @throws RuntimeException When a taxonomy assignment fails.
+	 * @throws PropertyPersistenceException When a taxonomy assignment fails.
 	 */
 	private function assignTerm( int $postId, string $taxonomy, string $term ): void {
 		$result = wp_set_object_terms( $postId, array( $term ), $taxonomy, false );
 		if ( $result instanceof WP_Error ) {
-			throw new RuntimeException( 'Unable to assign property taxonomy terms.', 0, $result );
+			throw new PropertyPersistenceException( 'Unable to assign property taxonomy terms.', 0, $result );
 		}
 	}
 }

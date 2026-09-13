@@ -10,14 +10,18 @@
 
 use PropertySync\Admin\Settings;
 use PropertySync\Api\PropertyApiClient;
+use PropertySync\Logging\SyncLogger;
 use PropertySync\PostType\PropertyPostType;
 use PropertySync\Sync\PropertyRepository;
+use PropertySync\Sync\SyncLock;
 use PropertySync\Sync\SyncRunner;
 
 $optionName = Settings::OPTION_NAME;
 $previous   = get_option( $optionName, null );
+$lastResult = get_option( SyncLogger::LAST_RESULT_OPTION, null );
 $settings   = new Settings();
 $repository = new PropertyRepository();
+$logger     = new SyncLogger();
 $payload    = array(
 	array(
 		'external_id'  => 'SYNC-TEST-1001',
@@ -84,10 +88,27 @@ try {
 		throw new RuntimeException( 'A changed property was not updated.' );
 	}
 
-	unset( $payload[0]['title'] );
+	$validAfterInvalid                = $payload[0];
+	$validAfterInvalid['external_id'] = 'SYNC-TEST-1002';
+	$validAfterInvalid['title']       = 'Valid property after invalid payload';
+	$invalidProperty                  = $payload[0];
+	unset( $invalidProperty['title'] );
+	$payload = array( $invalidProperty, $validAfterInvalid );
+
 	$invalid = $runner->run()->toArray();
-	if ( 1 !== $invalid['errors'] || 0 !== $invalid['created'] || 0 !== $invalid['updated'] ) {
-		throw new RuntimeException( 'An invalid property did not remain isolated.' );
+	if ( 2 !== $invalid['processed'] || 1 !== $invalid['errors'] || 1 !== $invalid['created'] || null === $repository->findIdByExternalId( 'SYNC-TEST-1002' ) ) {
+		throw new RuntimeException( 'An invalid property was not isolated from the next valid item.' );
+	}
+
+	$invalidLogged = false;
+	foreach ( $logger->getRecent() as $record ) {
+		if ( $invalid['run_id'] === $record['run_id'] && 'property_invalid' === $record['event'] && str_contains( (string) $record['message'], 'title' ) ) {
+			$invalidLogged = true;
+			break;
+		}
+	}
+	if ( ! $invalidLogged ) {
+		throw new RuntimeException( 'The invalid payload did not produce a useful safe log.' );
 	}
 
 	$duplicateId = wp_insert_post(
@@ -103,13 +124,62 @@ try {
 	}
 	update_post_meta( $duplicateId, '_property_external_id', 'SYNC-TEST-1001' );
 
-	try {
-		$repository->findIdByExternalId( 'SYNC-TEST-1001' );
-		throw new RuntimeException( 'Duplicate external IDs were accepted.' );
-	} catch ( RuntimeException $exception ) {
-		if ( 'Multiple properties share the same external ID.' !== $exception->getMessage() ) {
-			throw $exception;
+	$payload                         = array( $validAfterInvalid );
+	$payload[0]['external_id']       = 'SYNC-TEST-1001';
+	$payload[0]['title']             = 'Duplicate external ID payload';
+	$persistenceFailure             = $runner->run()->toArray();
+	if ( 1 !== $persistenceFailure['errors'] || 0 !== $persistenceFailure['created'] || 0 !== $persistenceFailure['updated'] ) {
+		throw new RuntimeException( 'A known persistence failure was not isolated.' );
+	}
+
+	$persistenceLogged = false;
+	foreach ( $logger->getRecent() as $record ) {
+		if ( $persistenceFailure['run_id'] === $record['run_id'] && 'property_persistence_failed' === $record['event'] ) {
+			$persistenceLogged = true;
+			break;
 		}
+	}
+	if ( ! $persistenceLogged ) {
+		throw new RuntimeException( 'The persistence failure did not produce a useful safe log.' );
+	}
+
+	$payload                   = array( $validAfterInvalid );
+	$payload[0]['external_id'] = 'SYNC-TEST-UNEXPECTED';
+	$unexpectedFilter          = static function ( array $postData ): array {
+		throw new TypeError( 'Unexpected programming error for smoke test.' );
+	};
+	$unexpectedPropagated      = false;
+
+	add_filter( 'wp_insert_post_data', $unexpectedFilter );
+	try {
+		$runner->run();
+	} catch ( TypeError $exception ) {
+		$unexpectedPropagated = true;
+	} finally {
+		remove_filter( 'wp_insert_post_data', $unexpectedFilter );
+	}
+
+	if ( ! $unexpectedPropagated ) {
+		throw new RuntimeException( 'An unexpected programming error was swallowed.' );
+	}
+	if ( null !== get_option( SyncLock::OPTION_NAME, null ) ) {
+		throw new RuntimeException( 'The synchronization lock was not released after an unexpected error.' );
+	}
+
+	$failedResult = get_option( SyncLogger::LAST_RESULT_OPTION );
+	if ( ! is_array( $failedResult ) || 'failed' !== ( $failedResult['status'] ?? null ) ) {
+		throw new RuntimeException( 'An unexpected error did not mark the synchronization as failed.' );
+	}
+
+	$unexpectedLogged = false;
+	foreach ( $logger->getRecent() as $record ) {
+		if ( $failedResult['run_id'] === $record['run_id'] && 'sync_unexpected_failure' === $record['event'] && str_contains( (string) $record['context_json'], 'TypeError' ) ) {
+			$unexpectedLogged = true;
+			break;
+		}
+	}
+	if ( ! $unexpectedLogged ) {
+		throw new RuntimeException( 'The unexpected error did not produce a safe diagnostic log.' );
 	}
 } finally {
 	remove_filter( 'pre_http_request', $filter, 10 );
@@ -123,7 +193,8 @@ try {
 			'meta_query'     => array(
 				array(
 					'key'   => '_property_external_id',
-					'value' => 'SYNC-TEST-1001',
+					'value'   => array( 'SYNC-TEST-1001', 'SYNC-TEST-1002', 'SYNC-TEST-UNEXPECTED' ),
+					'compare' => 'IN',
 				),
 			),
 		)
@@ -136,6 +207,12 @@ try {
 		delete_option( $optionName );
 	} else {
 		update_option( $optionName, $previous, false );
+	}
+
+	if ( null === $lastResult ) {
+		delete_option( SyncLogger::LAST_RESULT_OPTION );
+	} else {
+		update_option( SyncLogger::LAST_RESULT_OPTION, $lastResult, false );
 	}
 }
 

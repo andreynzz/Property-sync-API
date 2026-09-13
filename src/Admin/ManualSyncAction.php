@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 namespace PropertySync\Admin;
 
+use PropertySync\Api\ApiException;
 use PropertySync\Sync\SyncRunner;
-use Throwable;
 
 final class ManualSyncAction {
 
@@ -53,7 +53,7 @@ final class ManualSyncAction {
 				),
 				admin_url( 'admin.php' )
 			);
-		} catch ( Throwable $exception ) {
+		} catch ( ApiException $exception ) {
 			$url = add_query_arg(
 				array(
 					'page'                 => Settings::PAGE_SLUG,

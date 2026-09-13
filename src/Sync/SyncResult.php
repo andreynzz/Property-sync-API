@@ -64,6 +64,10 @@ final class SyncResult {
 		$this->status = 'already_running';
 	}
 
+	public function markFailed(): void {
+		$this->status = 'failed';
+	}
+
 	public function finish( string $finishedAt ): void {
 		$this->finishedAt = $finishedAt;
 	}
