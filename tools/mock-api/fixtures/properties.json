@@ -1,7 +1,7 @@
 [
   {
     "external_id": "PROP-1001",
-    "title": "Modern apartment downtown",
+    "title": "Modern apartment in Pinheiros",
     "description": "Two-bedroom apartment close to public transport.",
     "price": "485000.00",
     "property_type": "apartment",
@@ -43,5 +43,35 @@
     "status": "reserved",
     "image_url": "https://example.com/images/prop-1003.jpg",
     "updated_at": "2026-09-03T18:45:00Z"
+  },
+  {
+    "external_id": "PROP-1004",
+    "title": "Penthouse with skyline terrace",
+    "description": "Three-bedroom penthouse with a private terrace and panoramic city views.",
+    "price": "1450000.00",
+    "property_type": "penthouse",
+    "city": "Sao Paulo",
+    "neighborhood": "Vila Madalena",
+    "bedrooms": 3,
+    "bathrooms": 4,
+    "area": "210.00",
+    "status": "available",
+    "image_url": "https://example.com/images/prop-1004.jpg",
+    "updated_at": "2026-09-04T10:20:00Z"
+  },
+  {
+    "external_id": "PROP-1005",
+    "title": "Beachfront house with ocean view",
+    "description": "Renovated beachfront house with four bedrooms and direct access to the promenade.",
+    "price": "1180000.00",
+    "property_type": "house",
+    "city": "Santos",
+    "neighborhood": "Gonzaga",
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "area": "185.00",
+    "status": "available",
+    "image_url": "https://example.com/images/prop-1005.jpg",
+    "updated_at": "2026-09-05T16:10:00Z"
   }
 ]

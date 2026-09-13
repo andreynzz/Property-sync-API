@@ -10,8 +10,8 @@ declare(strict_types=1);
 namespace PropertySync\Cron;
 
 use PropertySync\Admin\Settings;
+use PropertySync\Api\ApiException;
 use PropertySync\Sync\SyncRunner;
-use Throwable;
 
 final class SyncScheduler {
 
@@ -78,7 +78,7 @@ final class SyncScheduler {
 	public function runScheduled(): void {
 		try {
 			$this->runner->run( 'cron' );
-		} catch ( Throwable $exception ) {
+		} catch ( ApiException $exception ) {
 			// SyncRunner records a safe failure event; cron should not emit a fatal error.
 			return;
 		}

@@ -9,20 +9,16 @@ data; WordPress owns its presentation and the local synchronized copy.
 ## Runtime design
 
 ```text
-Admin POST                 WP-Cron
-    |                         |
-    +-----------+-------------+
-                v
-           SyncRunner
-       +--------+--------+
-       |                 |
-   SyncLock          SyncLogger
-       |
-       v
-PropertyApiClient
-       |
-       v
-PropertyNormalizer -> PropertyHasher -> PropertyRepository
+Admin POST / WP-Cron
+         |
+         v
+     SyncRunner
+      |-- SyncLock
+      |-- PropertyApiClient
+      |-- PropertyNormalizer
+      |-- PropertyHasher
+      |-- PropertyRepository
+      `-- SyncLogger
 ```
 
 `Plugin` is the composition root. It wires concrete dependencies explicitly;
@@ -37,8 +33,8 @@ has one external source and one synchronous workflow.
 | `Api\PropertyApiClient` | Uses the WordPress HTTP API for authenticated pagination. |
 | `Sync\PropertyNormalizer` | Validates the upstream shape and produces canonical data. |
 | `Sync\PropertyHasher` | Builds a stable SHA-256 hash of relevant content. |
-| `Sync\PropertyRepository` | Finds, creates, and updates property posts and terms. |
-| `Sync\SyncRunner` | Orchestrates a run and isolates per-item failures. |
+| `Sync\PropertyRepository` | Finds, creates, and updates property posts and terms; converts expected WordPress rejections into `PropertyPersistenceException`. |
+| `Sync\SyncRunner` | Orchestrates a run, isolates expected item failures, and propagates unexpected errors. |
 | `Sync\SyncLock` | Provides option-backed mutual exclusion with a TTL. |
 | `Logging\SyncLogger` | Stores safe events, the last result, and retention cleanup. |
 | `Cron\SyncScheduler` | Maintains one native WP-Cron event and invokes the same runner. |
@@ -79,8 +75,24 @@ The last summary and lock use non-autoloaded options.
    in `finally`.
 
 An upstream-level failure ends the run because later pages cannot be trusted.
-A bad listing is contained to that listing, so other valid records still sync.
-Listings absent from later source responses are retained.
+A bad listing or known persistence rejection is contained to that listing, so
+other valid records still sync. Listings absent from later source responses
+are retained.
+
+## Failure policy
+
+Expected item-level failures have explicit boundaries:
+
+- `InvalidArgumentException` represents an invalid normalized payload.
+- `PropertyPersistenceException` represents a known WordPress persistence or
+  external-ID integrity rejection.
+
+The runner increments the item error counter, records a safe reason and
+external ID, then continues. Other `Throwable` instances are classified as
+unexpected run failures, logged with only their type, and rethrown. The run is
+marked `failed`, its summary is stored, and the lock is still released by the
+outer `finally` block. API failures remain visible as a separate
+`sync_api_failed` event.
 
 ## Security decisions
 
