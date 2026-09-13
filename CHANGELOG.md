@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-09-13
+
 ### Added
 
 - Real WordPress dashboard, synchronization summary, and activity-log
